@@ -75,7 +75,7 @@ def main():
     # ── 模式: train / eval（需要加载数据）──────────────────────
     print("Loading tokenizers ...")
     from transformer_data import load_tokenizers, load_vocab
-    spacy_de, spacy_en = load_tokenizers()
+    spacy_de, spacy_en = load_tokenizers()  #获取分词器
 
     print("Loading vocabulary ...")
     vocab_src, vocab_tgt = load_vocab(spacy_de, spacy_en, vocab_path=args.vocab_path)
