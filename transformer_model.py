@@ -119,9 +119,9 @@ class PositionwiseFeedForward(nn.Module):
 
     def __init__(self, d_model, d_ff, dropout=0.1):
         super(PositionwiseFeedForward, self).__init__()
-        self.w_1 = nn.Linear(d_model, d_ff)
-        self.w_2 = nn.Linear(d_ff, d_model)
-        self.dropout = nn.Dropout(dropout)
+        self.w_1 = nn.Linear(d_model, d_ff) #线性层
+        self.w_2 = nn.Linear(d_ff, d_model) ##线性层
+        self.dropout = nn.Dropout(dropout) #随机失活
 
     def forward(self, x):
         return self.w_2(self.dropout(self.w_1(x).relu()))
@@ -280,10 +280,10 @@ class EncoderDecoder(nn.Module):
 
 def make_model(src_vocab, tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0.1):
     """根据超参数构建完整 Transformer 模型"""
-    c = copy.deepcopy
-    attn = MultiHeadedAttention(h, d_model)
-    ff = PositionwiseFeedForward(d_model, d_ff, dropout)
-    position = PositionalEncoding(d_model, dropout)
+    c = copy.deepcopy #深拷贝
+    attn = MultiHeadedAttention(h, d_model) #多头注意力机制
+    ff = PositionwiseFeedForward(d_model, d_ff, dropout)  # 前馈网络
+    position = PositionalEncoding(d_model, dropout)  #位置编码模块
     model = EncoderDecoder(
         Encoder(EncoderLayer(d_model, c(attn), c(ff), dropout), N),
         Decoder(DecoderLayer(d_model, c(attn), c(attn), c(ff), dropout), N),
