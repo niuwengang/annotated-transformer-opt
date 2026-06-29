@@ -82,18 +82,18 @@ class MultiHeadedAttention(nn.Module):
     """多头注意力机制"""
 
     def __init__(self, h, d_model, dropout=0.1):
-        super(MultiHeadedAttention, self).__init__()
-        assert d_model % h == 0
-        self.d_k = d_model // h
-        self.h = h
-        self.linears = clones(nn.Linear(d_model, d_model), 4)
-        self.attn = None
-        self.dropout = nn.Dropout(p=dropout)
+        super(MultiHeadedAttention, self).__init__()  #调用父类 nn.Module 的初始化
+        assert d_model % h == 0  # d_model 必须是 h 的整数倍
+        self.d_k = d_model // h #每个头的维度处理64维度
+        self.h = h  #8个头
+        self.linears = clones(nn.Linear(d_model, d_model), 4)# 4 个 512×512 线性层 QKV和O
+        self.attn = None  #存储注意力权重，便于可视化
+        self.dropout = nn.Dropout(p=dropout)  #随机丢弃 10% 神经元，防过拟合
 
     def forward(self, query, key, value, mask=None):
         if mask is not None:
-            mask = mask.unsqueeze(1)
-        nbatches = query.size(0)
+            mask = mask.unsqueeze(1) #给 mask 加一个维度：[batch, seq, seq] → [batch, 1, seq, seq]
+        nbatches = query.size(0) #获取 batch 大小，比如一次训练 64 句话
 
         # 1) 线性投影：d_model => h x d_k
         query, key, value = [
