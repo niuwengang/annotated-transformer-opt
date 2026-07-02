@@ -174,10 +174,10 @@ class EncoderLayer(nn.Module):
 
     def __init__(self, size, self_attn, feed_forward, dropout):
         super(EncoderLayer, self).__init__()
-        self.self_attn = self_attn
-        self.feed_forward = feed_forward
+        self.self_attn = self_attn   #自注意力
+        self.feed_forward = feed_forward  #前馈网络
         self.sublayer = clones(SublayerConnection(size, dropout), 2)
-        self.size = size
+        self.size = size  #向量维度
 
     def forward(self, x, mask):
         x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, mask))
@@ -189,8 +189,8 @@ class Encoder(nn.Module):
 
     def __init__(self, layer, N):
         super(Encoder, self).__init__()
-        self.layers = clones(layer, N)
-        self.norm = LayerNorm(layer.size)
+        self.layers = clones(layer, N)  #复制 N 个编码器层
+        self.norm = LayerNorm(layer.size) #层归一化
 
     def forward(self, x, mask):
         for layer in self.layers:
