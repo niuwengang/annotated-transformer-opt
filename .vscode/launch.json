@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Train Model",
+            "name": "Train (epochs=5, batch_size=64)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
@@ -11,7 +11,9 @@
                 "--mode", "train",
                 "--epochs", "5",
                 "--batch_size", "64"
-            ]
+            ],
+            "justMyCode": true,
+            "python": "${command:python.interpreterPath}"
         }
     ]
 }
