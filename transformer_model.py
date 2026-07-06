@@ -207,17 +207,17 @@ class DecoderLayer(nn.Module):
 
     def __init__(self, size, self_attn, src_attn, feed_forward, dropout):
         super(DecoderLayer, self).__init__()
-        self.size = size
-        self.self_attn = self_attn
-        self.src_attn = src_attn
-        self.feed_forward = feed_forward
+        self.size = size #向量维度
+        self.self_attn = self_attn #自注意力
+        self.src_attn = src_attn #源注意力
+        self.feed_forward = feed_forward #前馈网络
         self.sublayer = clones(SublayerConnection(size, dropout), 3)
 
     def forward(self, x, memory, src_mask, tgt_mask):
         m = memory
-        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask))
-        x = self.sublayer[1](x, lambda x: self.src_attn(x, m, m, src_mask))
-        return self.sublayer[2](x, self.feed_forward)
+        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask)) #掩码自注意力
+        x = self.sublayer[1](x, lambda x: self.src_attn(x, m, m, src_mask)) #交叉注意力
+        return self.sublayer[2](x, self.feed_forward) #前馈网络
 
 
 class Decoder(nn.Module):
@@ -258,11 +258,11 @@ class EncoderDecoder(nn.Module):
 
     def __init__(self, encoder, decoder, src_embed, tgt_embed, generator):
         super(EncoderDecoder, self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.src_embed = src_embed
-        self.tgt_embed = tgt_embed
-        self.generator = generator
+        self.encoder = encoder #编码器
+        self.decoder = decoder #解码器
+        self.src_embed = src_embed #词嵌入层
+        self.tgt_embed = tgt_embed #词嵌入层
+        self.generator = generator #生成器
 
     def forward(self, src, tgt, src_mask, tgt_mask):
         return self.decode(self.encode(src, src_mask), src_mask, tgt, tgt_mask)
