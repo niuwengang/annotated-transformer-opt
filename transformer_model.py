@@ -47,8 +47,8 @@ class SublayerConnection(nn.Module):
         self.norm = LayerNorm(size)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, sublayer):
-        return x + self.dropout(sublayer(self.norm(x)))
+    def forward(self, x, sublayer):  #SublayerConnection 必须是一个能接收 x 的函数
+        return x + self.dropout(sublayer(self.norm(x)))  #Pre-Norm(论文里是Post-Norm，代码这个效果更好)
 
 
 # ============================================================================
@@ -180,8 +180,8 @@ class EncoderLayer(nn.Module):
         self.size = size  #向量维度
 
     def forward(self, x, mask):
-        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, mask))
-        return self.sublayer[1](x, self.feed_forward)
+        x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, mask)) #自注意力
+        return self.sublayer[1](x, self.feed_forward) #FFN 非线性变换 升维
 
 
 class Encoder(nn.Module):
@@ -216,7 +216,7 @@ class DecoderLayer(nn.Module):
     def forward(self, x, memory, src_mask, tgt_mask):
         m = memory
         x = self.sublayer[0](x, lambda x: self.self_attn(x, x, x, tgt_mask)) #掩码自注意力
-        x = self.sublayer[1](x, lambda x: self.src_attn(x, m, m, src_mask)) #交叉注意力
+        x = self.sublayer[1](x, lambda x: self.src_attn(x, m, m, src_mask)) #交叉注意力 Q匹配 K被匹配 V内容输入
         return self.sublayer[2](x, self.feed_forward) #前馈网络
 
 
@@ -289,7 +289,7 @@ def make_model(src_vocab, tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0
         Decoder(DecoderLayer(d_model, c(attn), c(attn), c(ff), dropout), N),
         nn.Sequential(Embeddings(d_model, src_vocab), c(position)),#源嵌入
         nn.Sequential(Embeddings(d_model, tgt_vocab), c(position)),#目标嵌入
-        Generator(d_model, tgt_vocab),
+        Generator(d_model, tgt_vocab), #log_softmax 层
     )
 
     # Xavier 初始化
@@ -318,4 +318,4 @@ def greedy_decode(model, src, src_mask, max_len, start_symbol):
         ys = torch.cat(
             [ys, torch.zeros(1, 1).type_as(src.data).fill_(next_word)], dim=1
         )
-    return ys
+    return ys 
