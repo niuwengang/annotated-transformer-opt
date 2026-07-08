@@ -82,14 +82,14 @@ def main():
 
     if args.mode == "train":
         config = {
-            "batch_size": args.batch_size,
-            "distributed": args.distributed,
-            "num_epochs": args.epochs,
-            "accum_iter": args.accum_iter,
-            "base_lr": args.base_lr,
-            "max_padding": args.max_padding,
-            "warmup": args.warmup,
-            "file_prefix": args.model_prefix,
+            "batch_size": args.batch_size, # 批次大小
+            "distributed": args.distributed, # 是否启用分布式训练
+            "num_epochs": args.epochs, # 训练轮数
+            "accum_iter": args.accum_iter, # 梯度累积步数
+            "base_lr": args.base_lr,# 基础学习率
+            "max_padding": args.max_padding,# 最大填充长度
+            "warmup": args.warmup,# warmup 步数
+            "file_prefix": args.model_prefix, # 模型保存前缀
         }
         print("Training config:", config)
         from transformer_training import train_model
