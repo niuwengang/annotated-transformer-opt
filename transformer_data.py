@@ -73,7 +73,7 @@ def to_map_style_dataset(iterable_dataset):
 
 class Multi30kDataset:
     """自定义 Multi30k 数据集加载器，不依赖 torchtext"""
-
+    #数据集 https://github.com/multi30k/dataset
     _URLS = {
         "train": {
             "de": "https://raw.githubusercontent.com/multi30k/dataset/master/data/task1/raw/train.de.gz",
@@ -90,8 +90,8 @@ class Multi30kDataset:
     }
 
     def __init__(self, language_pair=("de", "en"), root=".data"):
-        self.language_pair = language_pair
-        self.root = root
+        self.language_pair = language_pair #德语,英语
+        self.root = root #数据集存放的根目录
         self._data = None
 
     def _download_and_read(self, split):
@@ -105,9 +105,9 @@ class Multi30kDataset:
                 tmpfile = filename + ".gz.tmp"
                 urllib.request.urlretrieve(url, tmpfile)
                 with gzip.open(tmpfile, "rt", encoding="utf-8") as f_in:
-                    data = f_in.read()
+                    data = f_in.read() #一次性将解压后的全部内容读入内存，存为字符串
                 with open(filename, "w", encoding="utf-8") as f_out:
-                    f_out.write(data)
+                    f_out.write(data) #写入文件
                 os.remove(tmpfile)
             with open(filename, "r", encoding="utf-8") as f:
                 lines[lang] = [line.strip() for line in f.readlines()]
@@ -121,16 +121,16 @@ class Multi30kDataset:
         """返回 train, val, test 三个数据集"""
         if language_pair is not None:
             self.language_pair = language_pair
-        train_data = self._download_and_read("train")
-        val_data = self._download_and_read("val")
-        test_data = self._download_and_read("test_2016")
+        train_data = self._download_and_read("train") #训练集 list[tuple[str, str]]
+        val_data = self._download_and_read("val") #验证集
+        test_data = self._download_and_read("test_2016") #测试集
         return train_data, val_data, test_data
 
 
 def load_multi30k(language_pair=("de", "en")):
     """加载 Multi30k 数据集，返回 train, val, test"""
     dataset = Multi30kDataset(language_pair=language_pair)
-    return dataset()
+    return dataset()  #等价于dataset.__call__()
 
 
 # ============================================================================
@@ -140,13 +140,17 @@ def load_multi30k(language_pair=("de", "en")):
 def load_tokenizers():
     """加载 Spacy 分词器"""
     try:
-        spacy_de = spacy.load("de_core_news_sm")
+        spacy_de = spacy.load("de_core_news_sm") 
+        # 加载德语分词器 
+        # 例如: "Zwei junge weiße Männer" 切成 ["Zwei", "junge", "weiße", "Männer"]
     except IOError:
         os.system("python -m spacy download de_core_news_sm")
         spacy_de = spacy.load("de_core_news_sm")
 
     try:
         spacy_en = spacy.load("en_core_web_sm")
+        # 加载英语分词器
+        # 例如: "Two young white men" 切分为 ["Two", "young", "white", "men"]
     except IOError:
         os.system("python -m spacy download en_core_web_sm")
         spacy_en = spacy.load("en_core_web_sm")
@@ -177,22 +181,22 @@ def build_vocabulary(spacy_de, spacy_en):
     def tokenize_en(text):
         return tokenize(text, spacy_en)
 
-    print("Building German Vocabulary ...")
-    train, val, test = load_multi30k(language_pair=("de", "en"))
+    print("Building German Vocabulary ...") #构建德语分词器
+    train, val, test = load_multi30k(language_pair=("de", "en")) #数据集
     vocab_src = build_vocab_from_iterator(
         yield_tokens(train + val + test, tokenize_de, index=0),
         min_freq=2,
         specials=["<s>", "</s>", "<blank>", "<unk>"],
     )
 
-    print("Building English Vocabulary ...")
+    print("Building English Vocabulary ...") #构建英语分词器
     train, val, test = load_multi30k(language_pair=("de", "en"))
     vocab_tgt = build_vocab_from_iterator(
         yield_tokens(train + val + test, tokenize_en, index=1),
         min_freq=2,
         specials=["<s>", "</s>", "<blank>", "<unk>"],
     )
-
+    #当查询一个不在词表中的词时，自动返回 <unk>（unknown，未知词）的索引，而不是抛出错误。
     vocab_src.set_default_index(vocab_src["<unk>"])
     vocab_tgt.set_default_index(vocab_tgt["<unk>"])
 
@@ -203,9 +207,9 @@ def load_vocab(spacy_de, spacy_en, vocab_path="vocab.pt"):
     """加载或构建词表"""
     if not exists(vocab_path):
         vocab_src, vocab_tgt = build_vocabulary(spacy_de, spacy_en)
-        torch.save((vocab_src, vocab_tgt), vocab_path)
+        torch.save((vocab_src, vocab_tgt), vocab_path)  #保存词表
     else:
-        vocab_src, vocab_tgt = torch.load(vocab_path)
+        vocab_src, vocab_tgt = torch.load(vocab_path)  #加载词表
     print(f"Vocabulary sizes: src={len(vocab_src)}, tgt={len(vocab_tgt)}")
     return vocab_src, vocab_tgt
 

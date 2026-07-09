@@ -78,16 +78,16 @@ def main():
     spacy_de, spacy_en = load_tokenizers()  #获取分词器
 
     print("Loading vocabulary ...")
-    vocab_src, vocab_tgt = load_vocab(spacy_de, spacy_en, vocab_path=args.vocab_path)
+    vocab_src, vocab_tgt = load_vocab(spacy_de, spacy_en, vocab_path=args.vocab_path) #获取英语和德语的词表
 
     if args.mode == "train":
         config = {
             "batch_size": args.batch_size, # 批次大小
             "distributed": args.distributed, # 是否启用分布式训练
             "num_epochs": args.epochs, # 训练轮数
-            "accum_iter": args.accum_iter, # 梯度累积步数
-            "base_lr": args.base_lr,# 基础学习率
-            "max_padding": args.max_padding,# 最大填充长度
+            "accum_iter": args.accum_iter, # 每 accum_iter 个 batch 才执行一次 optimizer.step() 更新参数
+            "base_lr": args.base_lr,# 基础学习率，后续由rate() 调度函数动态计算
+            "max_padding": args.max_padding,# 最大填充长度，一个 batch 内所有句子统一填充到的最大 token 长度。
             "warmup": args.warmup,# warmup 步数
             "file_prefix": args.model_prefix, # 模型保存前缀
         }
