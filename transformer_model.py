@@ -281,8 +281,8 @@ class EncoderDecoder(nn.Module):
 def make_model(src_vocab, tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0.1):
     """根据超参数构建完整 Transformer 模型"""
     c = copy.deepcopy #深拷贝
-    attn = MultiHeadedAttention(h, d_model) #多头注意力机制
-    ff = PositionwiseFeedForward(d_model, d_ff, dropout)  # 前馈网络
+    attn = MultiHeadedAttention(h, d_model) #多头注意力机制模块
+    ff = PositionwiseFeedForward(d_model, d_ff, dropout)  # 前馈网络模块
     position = PositionalEncoding(d_model, dropout)  #位置编码模块
     model = EncoderDecoder(
         Encoder(EncoderLayer(d_model, c(attn), c(ff), dropout), N),
@@ -292,7 +292,7 @@ def make_model(src_vocab, tgt_vocab, N=6, d_model=512, d_ff=2048, h=8, dropout=0
         Generator(d_model, tgt_vocab), #log_softmax 层
     )
 
-    # Xavier 初始化
+    # Xavier 初始化 (让每一层输入的方差等于输出的方差)
     for p in model.parameters():
         if p.dim() > 1:
             nn.init.xavier_uniform_(p)

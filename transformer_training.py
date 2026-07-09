@@ -201,8 +201,8 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt,
     print(f"Train worker process using GPU: {gpu} for training", flush=True)
     torch.cuda.set_device(gpu)
 
-    pad_idx = vocab_tgt["<blank>"]
-    d_model = 512
+    pad_idx = vocab_tgt["<blank>"] # 填充位置的索引
+    d_model = 512 # 模型维度
     model = make_model(len(vocab_src), len(vocab_tgt), N=6)
     model.cuda(gpu)
     module = model
@@ -211,8 +211,10 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt,
     if is_distributed:
         import torch.distributed as dist
         from torch.nn.parallel import DistributedDataParallel as DDP
+        #1. 初始化进程组：让各个 GPU 进程互相认识
         dist.init_process_group("nccl", init_method="env://", rank=gpu,
                                 world_size=ngpus_per_node)
+        #2. 用 DDP 包裹模型
         model = DDP(model, device_ids=[gpu])
         module = model.module
         is_main_process = gpu == 0
@@ -280,12 +282,12 @@ def train_model(vocab_src, vocab_tgt, spacy_de, spacy_en, config):
     """训练入口：单 GPU 或多 GPU 分布式训练"""
     if config.get("distributed", False):
         import torch.multiprocessing as mp
-        ngpus = torch.cuda.device_count()
-        os.environ["MASTER_ADDR"] = "localhost"
-        os.environ["MASTER_PORT"] = "12356"
+        ngpus = torch.cuda.device_count() #检测GPU数量
+        os.environ["MASTER_ADDR"] = "localhost" #主节点地址
+        os.environ["MASTER_PORT"] = "12356" #通讯端口
         print(f"Number of GPUs detected: {ngpus}")
-        mp.spawn(train_worker, nprocs=ngpus,
-                 args=(ngpus, vocab_src, vocab_tgt, spacy_de, spacy_en, config, True))
+        #启动N个独立进程，每个进程绑定一张 GPU，各自执行train_worker函数
+        mp.spawn(train_worker, nprocs=ngpus,args=(ngpus, vocab_src, vocab_tgt, spacy_de, spacy_en, config, True))
     else:
         train_worker(0, 1, vocab_src, vocab_tgt, spacy_de, spacy_en, config, False)
 
