@@ -260,8 +260,8 @@ def create_dataloaders(device, vocab_src, vocab_tgt, spacy_de, spacy_en,
                              max_padding=max_padding,
                              pad_id=vocab_src.get_stoi()["<blank>"])
 
-    train_iter, valid_iter, test_iter = load_multi30k(language_pair=("de", "en"))
-
+    train_iter, valid_iter, test_iter = load_multi30k(language_pair=("de", "en")) #数据集
+    #把迭代式数据集转成 map-style 数据集，以便 DistributedSampler 能分片
     train_iter_map = to_map_style_dataset(train_iter)
     train_sampler = DistributedSampler(train_iter_map) if is_distributed else None
     valid_iter_map = to_map_style_dataset(valid_iter)

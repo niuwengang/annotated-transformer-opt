@@ -150,11 +150,11 @@ class LabelSmoothing(nn.Module):
     def __init__(self, size, padding_idx, smoothing=0.0):
         super(LabelSmoothing, self).__init__()
         self.criterion = nn.KLDivLoss(reduction="sum")
-        self.padding_idx = padding_idx
-        self.confidence = 1.0 - smoothing
+        self.padding_idx = padding_idx # 填充位置的索引
+        self.confidence = 1.0 - smoothing # 模型正确的概率，最多0.9
         self.smoothing = smoothing
-        self.size = size
-        self.true_dist = None
+        self.size = size # 词表大小
+        self.true_dist = None # 真实分布
 
     def forward(self, x, target):
         assert x.size(1) == self.size
@@ -218,7 +218,7 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt,
         model = DDP(model, device_ids=[gpu])
         module = model.module
         is_main_process = gpu == 0
-
+    #正则化技术 Rethinking the Inception Architecture for Computer Vision
     criterion = LabelSmoothing(size=len(vocab_tgt), padding_idx=pad_idx, smoothing=0.1)
     criterion.cuda(gpu)
 
@@ -236,7 +236,7 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt,
         optimizer=optimizer,
         lr_lambda=lambda step: rate(step, d_model, factor=1, warmup=config["warmup"]),
     )
-    train_state = TrainState()
+    train_state = TrainState() #训练状态追踪器
 
     for epoch in range(config["num_epochs"]):
         if is_distributed:
@@ -247,15 +247,15 @@ def train_worker(gpu, ngpus_per_node, vocab_src, vocab_tgt,
         print(f"[GPU{gpu}] Epoch {epoch} Training ====", flush=True)
         _, train_state = run_epoch(
             (Batch(b[0], b[1], pad_idx) for b in train_dataloader),
-            model,
-            SimpleLossCompute(module.generator, criterion),
+            model, #模型
+            SimpleLossCompute(module.generator, criterion), #损失计算
             optimizer, lr_scheduler,
             mode="train+log",
             accum_iter=config["accum_iter"],
             train_state=train_state,
         )
 
-        GPUtil.showUtilization()
+        GPUtil.showUtilization() #显示GPU使用情况
         if is_main_process:
             file_path = "%s%.2d.pt" % (config["file_prefix"], epoch)
             torch.save(module.state_dict(), file_path)
