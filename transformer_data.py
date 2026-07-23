@@ -54,7 +54,7 @@ class SimpleVocab:
 
 def build_vocab_from_iterator(iterator, min_freq=1, specials=None):
     """从迭代器构建词表（替代 torchtext.vocab.build_vocab_from_iterator）"""
-    counter = Counter()
+    counter = Counter() #迭代器
     for tokens in iterator:
         counter.update(tokens)
     if specials is None:
@@ -98,8 +98,8 @@ class Multi30kDataset:
         os.makedirs(self.root, exist_ok=True)
         lines = {}
         for lang in self.language_pair:
-            url = self._URLS[split][lang]
-            filename = os.path.join(self.root, f"multi30k_{split}.{lang}")
+            url = self._URLS[split][lang]  # 数据集下载地址
+            filename = os.path.join(self.root, f"multi30k_{split}.{lang}") #数据集保存路径
             if not os.path.exists(filename):
                 print(f"Downloading {url} ...")
                 tmpfile = filename + ".gz.tmp"
@@ -121,7 +121,7 @@ class Multi30kDataset:
         """返回 train, val, test 三个数据集"""
         if language_pair is not None:
             self.language_pair = language_pair
-        train_data = self._download_and_read("train") #训练集 list[tuple[str, str]]
+        train_data = self._download_and_read("train") #训练集 list[tuple[str, str]] 德语在前,英语在后
         val_data = self._download_and_read("val") #验证集
         test_data = self._download_and_read("test_2016") #测试集
         return train_data, val_data, test_data
@@ -184,7 +184,7 @@ def build_vocabulary(spacy_de, spacy_en):
     print("Building German Vocabulary ...") #构建德语分词器
     train, val, test = load_multi30k(language_pair=("de", "en")) #数据集
     vocab_src = build_vocab_from_iterator(
-        yield_tokens(train + val + test, tokenize_de, index=0),
+        yield_tokens(train + val + test, tokenize_de, index=0), #训练集 迭代器
         min_freq=2,
         specials=["<s>", "</s>", "<blank>", "<unk>"],
     )
